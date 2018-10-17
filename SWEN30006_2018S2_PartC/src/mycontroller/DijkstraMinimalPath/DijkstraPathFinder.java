@@ -42,7 +42,10 @@ public class DijkstraPathFinder implements IPathFinder {
 			}
 			// expand current, the children, we only has its coordinate
 			current.getChildren().forEach(child -> {
-				
+				MapTile tile = map.get(child.coordinate);
+//				if(tile.getType() == MapTile.Type.WALL) {
+//					return;
+//				}
 				setNodeCost(child, map);
 				if (child.cost < Double.POSITIVE_INFINITY) {
 				if (!expanded.containsKey(child.coordinate)) {
@@ -66,7 +69,11 @@ public class DijkstraPathFinder implements IPathFinder {
 			path.add(0, current.coordinate);
 			current = current.parent;
 		}
-		
+		if(path.get(path.size()-1).x > start.x+4 || path.get(path.size()-1).y > start.y+4)
+			path.clear();
+		if (path.size() == 1) {
+			path.clear();
+		}
 		return path;
 	}
 	
@@ -104,6 +111,7 @@ public class DijkstraPathFinder implements IPathFinder {
 		 */
 //		ITileCost tileCost = TileCostPool.getInstance().getTileCost(tile);
 //		node.setCost(tileCost.getCost(node, map) + node.parent.cost);
+		
 		if(tile.getType() == MapTile.Type.WALL) {
 			node.setCost(Double.POSITIVE_INFINITY);
 		}

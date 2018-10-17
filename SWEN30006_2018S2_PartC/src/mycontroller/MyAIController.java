@@ -70,7 +70,7 @@ public class MyAIController extends CarController{
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
-			System.out.println(weightMap.get(coordinate)+"    "+coordinate);
+			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n\n\n\n");
 		}
 		Collections.sort(arrayList, Collections.reverseOrder());
 //		System.out.println(arrayList);
