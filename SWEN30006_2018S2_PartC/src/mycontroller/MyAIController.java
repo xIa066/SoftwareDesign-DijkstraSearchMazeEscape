@@ -12,8 +12,11 @@ import com.badlogic.gdx.Input.Orientation;
 
 import controller.CarController;
 import swen30006.driving.Simulation;
+import tiles.GrassTrap;
+import tiles.HealthTrap;
 import tiles.LavaTrap;
 import tiles.MapTile;
+import tiles.MudTrap;
 import tiles.TrapTile;
 import utilities.Coordinate;
 import world.Car;
@@ -159,6 +162,9 @@ public class MyAIController extends CarController{
 				}
 			}
 		}
+		if (weightMap.get(new Coordinate(getPosition())) > 1000) {
+			weightMap.put(new Coordinate(getPosition()), 30);
+		}
 		HashMap<Coordinate, MapTile> currentView = getView();
 		for(Coordinate coordinate : currentView.keySet()) {
 			MapTile tile =  currentView.get(coordinate);
@@ -170,26 +176,32 @@ public class MyAIController extends CarController{
 					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 10000);
 						travelMap.put(coordinate, true);
+						wholeMap.put(coordinate, (LavaTrap)tile);
 					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 50);
 						travelMap.put(coordinate, true);
+						wholeMap.put(coordinate, (LavaTrap)tile);
 					}
 				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
 					weightMap.put(coordinate, Integer.MIN_VALUE);
 					travelMap.put(coordinate, true);
+					wholeMap.put(coordinate, (MudTrap)tile);
+					System.out.println("mud   " + coordinate);
 				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
+					wholeMap.put(coordinate, (HealthTrap)tile);
 				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
+					wholeMap.put(coordinate, (GrassTrap)tile);
 				}
 			}
 		}
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
-			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n\n\n\n");
+			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
 		}
 		Collections.sort(arrayList, Collections.reverseOrder());
 //		System.out.println(arrayList);
@@ -200,13 +212,16 @@ public class MyAIController extends CarController{
 				//find a route
 				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
 				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
-				List<Coordinate> coordinates =  dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
-				System.out.println(coordinates);
+				List<Coordinate> coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
+				System.out.println(getPosition());
+				
 				Direction orientation = getOrientation();
 				if (coordinates.size() <= 1) {
 					continue;
 				}
+				System.out.println(coordinates);
 				nextCoordinate = coordinates.get(1);
+				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
 				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
 				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
 				if(x == 1 && y == 0) {
@@ -234,9 +249,7 @@ public class MyAIController extends CarController{
 						break;
 					}
 				}
-				if (weightMap.get(new Coordinate(getPosition())) == 10000) {
-					weightMap.put(new Coordinate(getPosition()), 50);
-				}
+				
 				break;
 			}
 			

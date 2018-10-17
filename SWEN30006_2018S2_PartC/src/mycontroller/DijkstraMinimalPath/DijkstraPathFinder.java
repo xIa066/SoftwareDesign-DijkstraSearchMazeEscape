@@ -70,7 +70,7 @@ public class DijkstraPathFinder implements IPathFinder {
 			path.add(0, current.coordinate);
 			current = current.parent;
 		}
-		if(path.get(path.size()-1).x > start.x+4 || path.get(path.size()-1).y > start.y+4)
+		if(path.get(path.size()-1).x > start.x+4 || path.get(path.size()-1).y > start.y+4 || path.get(path.size()-1).x < start.x-4 || path.get(path.size()-1).y < start.y-4)
 			path.clear();
 		if (path.size() == 1) {
 			path.clear();
@@ -115,17 +115,21 @@ public class DijkstraPathFinder implements IPathFinder {
 		
 		if(tile.getType() == MapTile.Type.WALL) {
 			node.setCost(Double.POSITIVE_INFINITY);
-		}else if(tile.isType(MapTile.Type.TRAP)) {
-			if(((TrapTile) tile).getTrap().equals("lava")){
-				node.setCost(100+node.parent.cost);
-			}else if(((TrapTile) tile).getTrap().equals("mud")){
-				node.setCost(Double.POSITIVE_INFINITY);
-			}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
-				node.setCost(1+node.parent.cost);
-			}else if(((TrapTile) tile).getTrap().equals("grass")){
-				node.setCost(1+node.parent.cost);
+		}else {
+			if(tile.isType(MapTile.Type.TRAP)) {
+				if(((TrapTile) tile).getTrap().equals("lava")){
+					node.setCost(100+node.parent.cost);
+				}else if(((TrapTile) tile).getTrap().equals("mud")){
+					node.setCost(Double.POSITIVE_INFINITY);
+					System.out.println("mud 1   " + node.coordinate);
+				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
+					node.setCost(1+node.parent.cost);
+				}else if(((TrapTile) tile).getTrap().equals("grass")){
+					node.setCost(1+node.parent.cost);
+				}
 			}
-		}else node.setCost(1+node.parent.cost);
+			else node.setCost(1+node.parent.cost);
+		}
 	}
 
 }
