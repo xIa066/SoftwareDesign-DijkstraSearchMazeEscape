@@ -10,6 +10,7 @@ import tiles.GrassTrap;
 import tiles.LavaTrap;
 import tiles.MapTile;
 import tiles.MudTrap;
+import tiles.TrapTile;
 import utilities.Coordinate;
 
 public class DijkstraPathFinder implements IPathFinder {
@@ -114,8 +115,17 @@ public class DijkstraPathFinder implements IPathFinder {
 		
 		if(tile.getType() == MapTile.Type.WALL) {
 			node.setCost(Double.POSITIVE_INFINITY);
-		}
-		else node.setCost(1+node.parent.cost);
+		}else if(tile.isType(MapTile.Type.TRAP)) {
+			if(((TrapTile) tile).getTrap().equals("lava")){
+				node.setCost(100+node.parent.cost);
+			}else if(((TrapTile) tile).getTrap().equals("mud")){
+				node.setCost(Double.POSITIVE_INFINITY);
+			}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
+				node.setCost(1+node.parent.cost);
+			}else if(((TrapTile) tile).getTrap().equals("grass")){
+				node.setCost(1+node.parent.cost);
+			}
+		}else node.setCost(1+node.parent.cost);
 	}
 
 }

@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.badlogic.gdx.Input;
-
+import com.badlogic.gdx.Input.Orientation;
 
 import controller.CarController;
 import swen30006.driving.Simulation;
@@ -17,28 +17,136 @@ import tiles.MapTile;
 import tiles.TrapTile;
 import utilities.Coordinate;
 import world.Car;
+import world.WorldSpatial.Direction;
 
 public class MyAIController extends CarController{
 
+	private static final float CAR_MAX_SPEED = 1;
+	Coordinate nextCoordinate;
 	private HashMap<Coordinate, MapTile> wholeMap;
 	private HashMap<Coordinate, Integer> weightMap;
+	private HashMap<Coordinate, Boolean> travelMap;
+	private Direction direction;
 	public MyAIController(Car car) {
 		super(car);
 		wholeMap = getMap();
 		weightMap = new HashMap<Coordinate,Integer>();
-		
+		travelMap = new HashMap<Coordinate,Boolean>();
+		for(Coordinate coordinate : wholeMap.keySet()) {
+			travelMap.put(coordinate, false);
+		}
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			if(wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
 				weightMap.put(coordinate, 100);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.START)) {
 				weightMap.put(coordinate, 100);
+				travelMap.put(coordinate, true);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.WALL)) {
 				weightMap.put(coordinate, Integer.MIN_VALUE);
+				travelMap.put(coordinate, true);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
 				weightMap.put(coordinate,Integer.MIN_VALUE);//need to be modified
+				travelMap.put(coordinate, true);
 			}
 		}
 		System.out.println(weightMap);
+	}
+	
+	private void eastTurn() {
+		switch (direction) {
+		case EAST:
+			applyForwardAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case WEST:
+			applyReverseAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case NORTH:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnLeft();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		case SOUTH:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnRight();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		}
+	}
+	private void westTurn() {
+		switch (direction) {
+		case WEST:
+			applyForwardAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case EAST:
+			applyReverseAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case SOUTH:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnLeft();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		case NORTH:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnRight();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		}
+	}
+	private void northTurn() {
+		switch (direction) {
+		case NORTH:
+			applyForwardAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case SOUTH:
+			applyReverseAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case WEST:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnLeft();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		case EAST:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnRight();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		}
+	}
+	private void southTurn() {
+		switch (direction) {
+		case SOUTH:
+			applyForwardAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case NORTH:
+			applyReverseAcceleration();
+			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			break;
+		case EAST:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnLeft();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		case WEST:
+			if (getSpeed() == CAR_MAX_SPEED) {
+				turnRight();
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+			}
+			break;
+		}
 	}
 
 	@Override
@@ -52,18 +160,22 @@ public class MyAIController extends CarController{
 			}else if(tile.isType(MapTile.Type.TRAP)) {
 				//System.out.println(((TrapTile) tile).getTrap()+"    "+coordinate);
 				if(((TrapTile) tile).getTrap().equals("lava")){
-					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
-						
+					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 10000);
-					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
+						travelMap.put(coordinate, true);
+					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 50);
+						travelMap.put(coordinate, true);
 					}
-				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD)){
+				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
 					weightMap.put(coordinate, Integer.MIN_VALUE);
+					travelMap.put(coordinate, true);
 				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
-					weightMap.put(coordinate, 200);
-				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD)){
 					weightMap.put(coordinate, 100);
+					travelMap.put(coordinate, true);
+				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
+					weightMap.put(coordinate, 100);
+					travelMap.put(coordinate, true);
 				}
 			}
 		}
@@ -83,7 +195,39 @@ public class MyAIController extends CarController{
 				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
 				List<Coordinate> coordinates =  dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
 				System.out.println(coordinates);
-				
+				Direction orientation = getOrientation();
+				if (coordinates.size() <= 1) {
+					continue;
+				}
+				nextCoordinate = coordinates.get(1);
+				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
+				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
+				if(x == 1 && y == 0) {
+					direction = Direction.EAST;
+				}else if(x == -1 && y == 0) {
+					direction = Direction.WEST;
+				}else if(x == 0 && y == 1) {
+					direction = Direction.NORTH;
+				}else if(x == 0 && y == -1) {
+					direction = Direction.SOUTH;
+				}
+				if(!coordinates.isEmpty()) {
+					switch (orientation) {
+					case EAST:
+						eastTurn();
+						break;
+					case WEST:
+						westTurn();
+						break;
+					case NORTH:
+						northTurn();
+						break;
+					case SOUTH:
+						southTurn();
+						break;
+					}
+				}
+				break;
 			}
 			
 		}
