@@ -2,6 +2,7 @@ package mycontroller.DijkstraMinimalPath;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -42,25 +43,39 @@ public class DijkstraPathFinder implements IPathFinder {
 				break;
 			}
 			// expand current, the children, we only has its coordinate
+			//current.getChildren().forEach(child -> {
+			
+//			List<Node> children = current.getChildren();
+//			Iterator<Node> it = children.iterator();
+//			
+//			while (it.hasNext()) {
+//				Node child = it.next();
 			current.getChildren().forEach(child -> {
 				MapTile tile = map.get(child.coordinate);
 //				if(tile.getType() == MapTile.Type.WALL) {
 //					return;
 //				}
+//				if (tile.isType(MapTile.Type.WALL)) {
+//					it.remove();
+//					continue;
+//				} else if (tile.isType(MapTile.Type.TRAP) && ((TrapTile)tile).getTrap().equals("mud")) {
+//					it.remove();
+//					continue;
+//				}
 				setNodeCost(child, map);
-				if (child.cost < Double.POSITIVE_INFINITY) {
-				if (!expanded.containsKey(child.coordinate)) {
-					expanded.put(child.coordinate, child);
-					frontier.add(child);
-				}
-				else if (expanded.get(child.coordinate).traversed == false) {
-					if (child.cost < expanded.get(child.coordinate).cost) {
-						frontier.remove(expanded.get(child.coordinate));
-						frontier.add(child);
-						expanded.remove(child.coordinate);
+				if (child.cost < Integer.MAX_VALUE) {
+					if (!expanded.containsKey(child.coordinate)) {
 						expanded.put(child.coordinate, child);
+						frontier.add(child);
 					}
-				}
+					else if (expanded.get(child.coordinate).traversed == false) {
+						if (child.cost < expanded.get(child.coordinate).cost) {
+							frontier.remove(expanded.get(child.coordinate));
+							frontier.add(child);
+							expanded.remove(child.coordinate);
+							expanded.put(child.coordinate, child);
+						}
+					}
 				}
 			});
 		}
@@ -114,14 +129,13 @@ public class DijkstraPathFinder implements IPathFinder {
 //		node.setCost(tileCost.getCost(node, map) + node.parent.cost);
 		
 		if(tile.getType() == MapTile.Type.WALL) {
-			node.setCost(Double.POSITIVE_INFINITY);
+			node.setCost(Integer.MAX_VALUE);
 		}else {
 			if(tile.isType(MapTile.Type.TRAP)) {
 				if(((TrapTile) tile).getTrap().equals("lava")){
 					node.setCost(100+node.parent.cost);
 				}else if(((TrapTile) tile).getTrap().equals("mud")){
-					node.setCost(Double.POSITIVE_INFINITY);
-					System.out.println("mud 1   " + node.coordinate);
+					node.setCost(Integer.MAX_VALUE);
 				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
 					node.setCost(1+node.parent.cost);
 				}else if(((TrapTile) tile).getTrap().equals("grass")){

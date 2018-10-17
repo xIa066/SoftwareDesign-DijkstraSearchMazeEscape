@@ -30,6 +30,10 @@ public class MyAIController extends CarController{
 	private HashMap<Coordinate, Integer> weightMap;
 	private HashMap<Coordinate, Boolean> travelMap;
 	private Direction direction;
+	private Boolean healthFlag = false;
+	private Boolean getAllKeys = false;
+	private Coordinate finishPoint;
+	
 	public MyAIController(Car car) {
 		super(car);
 		wholeMap = getMap();
@@ -50,6 +54,7 @@ public class MyAIController extends CarController{
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
 				weightMap.put(coordinate,Integer.MIN_VALUE);//need to be modified
 				travelMap.put(coordinate, true);
+				finishPoint = coordinate;
 			}
 		}
 		System.out.println(weightMap);
@@ -156,6 +161,7 @@ public class MyAIController extends CarController{
 	public void update() {
 		// TODO Auto-generated method stub
 		if(getKeys().size() == numKeys()) {
+			getAllKeys = true;
 			for(Coordinate coordinate : wholeMap.keySet()) {
 				if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
 					weightMap.put(coordinate,Integer.MAX_VALUE);
@@ -165,7 +171,22 @@ public class MyAIController extends CarController{
 		if (weightMap.get(new Coordinate(getPosition())) > 1000) {
 			weightMap.put(new Coordinate(getPosition()), 30);
 		}
+		
 		HashMap<Coordinate, MapTile> currentView = getView();
+		
+		if (getHealth() <= 50) {
+			healthFlag = true;
+		}else if (getHealth() == 100 && healthFlag) {
+			healthFlag = false;
+		}
+		
+		if (currentView.get(new Coordinate(getPosition())) instanceof HealthTrap) {
+			if (healthFlag) {
+				applyBrake();
+				return;
+			}
+		}
+		
 		for(Coordinate coordinate : currentView.keySet()) {
 			MapTile tile =  currentView.get(coordinate);
 			if(tile.isType(MapTile.Type.EMPTY)) {
@@ -187,7 +208,7 @@ public class MyAIController extends CarController{
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (MudTrap)tile);
 					System.out.println("mud   " + coordinate);
-				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
+				}else if(((TrapTile) tile).getTrap().equals("health") && !travelMap.get(coordinate)){//current health to be added
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (HealthTrap)tile);
@@ -212,16 +233,24 @@ public class MyAIController extends CarController{
 				//find a route
 				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
 				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
-				List<Coordinate> coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
+				List<Coordinate> coordinates;
+				if (getAllKeys) {
+					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), finishPoint, wholeMap);
+				}else {
+					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
+				}
 				System.out.println(getPosition());
 				
 				Direction orientation = getOrientation();
 				if (coordinates.size() <= 1) {
+					i++;
 					continue;
 				}
 				System.out.println(coordinates);
 				nextCoordinate = coordinates.get(1);
+				// the weight of destination - 1
 				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
+				
 				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
 				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
 				if(x == 1 && y == 0) {

@@ -11,7 +11,7 @@ public class Node implements Comparable<Node> {
 
 	public Coordinate coordinate;
 	public Node parent;
-	public double cost;
+	public int cost;
 	public boolean traversed = false;
 	
 	public Node(Node parent, Coordinate coordinate) {
@@ -35,7 +35,7 @@ public class Node implements Comparable<Node> {
 	}
 	
 	
-	public void setCost(double cost) {
+	public void setCost(int cost) {
 		this.cost = cost;
 	}
 	
