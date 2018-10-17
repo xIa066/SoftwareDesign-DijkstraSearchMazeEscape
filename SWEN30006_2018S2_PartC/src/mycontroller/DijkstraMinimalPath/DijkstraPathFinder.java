@@ -33,6 +33,10 @@ public class DijkstraPathFinder implements IPathFinder {
 		current.setCost(0);
 		expanded.put(current.coordinate, current);
 		frontier.add(current);
+		System.out.println("this                "+current.coordinate.toString());
+		for (Node child: current.getChildren()) {
+			System.out.println("Child           " +child.coordinate.toString());
+		}
 		
 		while (!frontier.isEmpty()) {
 			// current is a node
@@ -85,8 +89,8 @@ public class DijkstraPathFinder implements IPathFinder {
 			path.add(0, current.coordinate);
 			current = current.parent;
 		}
-		if(path.get(path.size()-1).x > start.x+4 || path.get(path.size()-1).y > start.y+4 || path.get(path.size()-1).x < start.x-4 || path.get(path.size()-1).y < start.y-4)
-			path.clear();
+//		if(path.get(path.size()-1).x > start.x+4 || path.get(path.size()-1).y > start.y+4 || path.get(path.size()-1).x < start.x-4 || path.get(path.size()-1).y < start.y-4)
+//			path.clear();
 		if (path.size() == 1) {
 			path.clear();
 		}
