@@ -152,6 +152,13 @@ public class MyAIController extends CarController{
 	@Override
 	public void update() {
 		// TODO Auto-generated method stub
+		if(getKeys().size() == numKeys()) {
+			for(Coordinate coordinate : wholeMap.keySet()) {
+				if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
+					weightMap.put(coordinate,Integer.MAX_VALUE);
+				}
+			}
+		}
 		HashMap<Coordinate, MapTile> currentView = getView();
 		for(Coordinate coordinate : currentView.keySet()) {
 			MapTile tile =  currentView.get(coordinate);
@@ -226,6 +233,9 @@ public class MyAIController extends CarController{
 						southTurn();
 						break;
 					}
+				}
+				if (weightMap.get(new Coordinate(getPosition())) == 10000) {
+					weightMap.put(new Coordinate(getPosition()), 50);
 				}
 				break;
 			}
