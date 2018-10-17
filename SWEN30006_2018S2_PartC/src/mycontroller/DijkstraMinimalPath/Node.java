@@ -1,4 +1,4 @@
-package DijkstraMinimalPath;
+package mycontroller.DijkstraMinimalPath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,7 @@ public class Node implements Comparable<Node> {
 	
 	// Children , four adjacent directions, except it is outside of the map
 	public List<Node> getChildren() {
+		
 		List<Node >children = new ArrayList<>();
 		for (int i=-1; i<2; i=i+2) {
 			if (coordinate.x+i < World.MAP_WIDTH && coordinate.x+i >=0) {

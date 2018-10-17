@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.badlogic.gdx.Input;
 
-import DijkstraMinimalPath.DijkstraPathFinder;
+
 import controller.CarController;
 import swen30006.driving.Simulation;
 import tiles.LavaTrap;
@@ -80,7 +80,7 @@ public class MyAIController extends CarController{
 //				System.out.println(coordinate);
 				//find a route
 				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
-				DijkstraPathFinder dijkstraPathFinder = new DijkstraPathFinder();
+				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
 				List<Coordinate> coordinates =  dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
 				System.out.println(coordinates);
 				

@@ -1,4 +1,4 @@
-package DijkstraMinimalPath;
+package mycontroller.DijkstraMinimalPath;
 
 import java.util.HashMap;
 import java.util.List;
