@@ -79,7 +79,7 @@ public class DijkstraPathFinder implements IPathFinder {
 	}
 	
 	public void setNodeCost(Node node, HashMap<Coordinate, MapTile> map) {
-		MapTile tile = map.get(node.coordinate);
+		//MapTile tile = map.get(node.coordinate);
 		//  we can get the tile type
 		//  Base one tile type, we set cost accordingly
 		// 这里可以专门再写一个 不同tile type 的package
@@ -113,8 +113,10 @@ public class DijkstraPathFinder implements IPathFinder {
 
 		}
 		 */
-		ITileCost tileCost = TileCostPool.getInstance().getTileCost(tile);
-		node.setCost(tileCost.getCost(node, map) + node.parent.cost);
+//		ITileCost tileCost = TileCostPool.getInstance().getTileCost(tile);
+//		node.setCost(tileCost.getCost(node, map) + node.parent.cost);
+		node.cost += 100;
+		
 	}
 
 }

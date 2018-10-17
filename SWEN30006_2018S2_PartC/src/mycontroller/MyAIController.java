@@ -3,11 +3,13 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import com.badlogic.gdx.Input;
 
+import DijkstraMinimalPath.DijkstraPathFinder;
 import controller.CarController;
 import swen30006.driving.Simulation;
 import tiles.LavaTrap;
@@ -75,9 +77,13 @@ public class MyAIController extends CarController{
 		int i = 0;
 		for(Coordinate coordinate : currentView.keySet()) {
 			if(weightMap.get(coordinate) == arrayList.get(i)) {
-				System.out.println(coordinate);
+//				System.out.println(coordinate);
 				//find a route
 				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
+				DijkstraPathFinder dijkstraPathFinder = new DijkstraPathFinder();
+				List<Coordinate> coordinates =  dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
+				System.out.println(coordinates);
+				
 			}
 			
 		}
