@@ -18,32 +18,43 @@ public class DijkstraPathFinder implements IPathFinder {
 
 	HashMap<Coordinate, Node> expanded;
 	PriorityQueue<Node> frontier;
+	HashMap<Coordinate, Node> unreachable;
+	int i;
 	
 	public DijkstraPathFinder() {
 		expanded = new HashMap<>();
 		frontier = new PriorityQueue<>();
+		i = 0;
 	}
 
 	@Override
 	public List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
 		expanded.clear();
 		frontier.clear();
+		i=0;
+//		System.out.println("start: " +start );
+//		System.out.println("finish: " +finish);
 		// new Node( Node Parent, coordinate)
 		Node current = new Node(null, start);
 		current.setCost(0);
 		expanded.put(current.coordinate, current);
 		frontier.add(current);
-		System.out.println("this                "+current.coordinate.toString());
-		for (Node child: current.getChildren()) {
-			System.out.println("Child           " +child.coordinate.toString());
-		}
+//		System.out.println("this current Node:   "+current.coordinate.toString());
+//		System.out.println("this current Node cost:  "+current.cost);
+//		for (Node child: current.getChildren()) {
+//			System.out.println("Child           " +child.coordinate.toString());
+//		}
 		
 		while (!frontier.isEmpty()) {
+			i++;
 			// current is a node
 			current = frontier.remove();
 			current.traversed = true;
+//			System.out.println("current coordinate:" +current.coordinate);
+//			System.out.println("current cost:" + current.cost);
+//			System.out.println('*');
 			
-			if (finish.equals(current.coordinate)) {
+			if (finish.equals(current.coordinate) ) {
 				break;
 			}
 			// expand current, the children, we only has its coordinate
@@ -55,19 +66,11 @@ public class DijkstraPathFinder implements IPathFinder {
 //			while (it.hasNext()) {
 //				Node child = it.next();
 			current.getChildren().forEach(child -> {
-				MapTile tile = map.get(child.coordinate);
-//				if(tile.getType() == MapTile.Type.WALL) {
-//					return;
-//				}
-//				if (tile.isType(MapTile.Type.WALL)) {
-//					it.remove();
-//					continue;
-//				} else if (tile.isType(MapTile.Type.TRAP) && ((TrapTile)tile).getTrap().equals("mud")) {
-//					it.remove();
-//					continue;
-//				}
+
 				setNodeCost(child, map);
-				if (child.cost < Integer.MAX_VALUE) {
+//				System.out.println(child.coordinate);
+//				System.out.println(child.cost);
+//				if (child.cost < Integer.MAX_VALUE) {
 					if (!expanded.containsKey(child.coordinate)) {
 						expanded.put(child.coordinate, child);
 						frontier.add(child);
@@ -81,8 +84,12 @@ public class DijkstraPathFinder implements IPathFinder {
 						}
 					}
 				}
-			});
+			);
+//			System.out.println("===========");
 		}
+//		System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+		System.out.println("*Actual finish: " + current.coordinate);
+		System.out.println("*Actual cost" + current.cost);
 		
 		List<Coordinate> path = new ArrayList<>();
 		while (current != null) {
@@ -94,9 +101,15 @@ public class DijkstraPathFinder implements IPathFinder {
 		if (path.size() == 1) {
 			path.clear();
 		}
+		System.out.println("$ i value is " + i);
 		return path;
 	}
 	
+	private boolean finishUnreachable() {
+		
+		return false;
+	}
+
 	public void setNodeCost(Node node, HashMap<Coordinate, MapTile> map) {
 		MapTile tile = map.get(node.coordinate);
 		//  we can get the tile type

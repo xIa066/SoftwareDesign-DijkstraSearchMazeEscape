@@ -42,6 +42,7 @@ public class MyAIController extends CarController{
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			travelMap.put(coordinate, false);
 		}
+		// Initialize the whole map
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			if(wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
 				weightMap.put(coordinate, 100);
@@ -57,7 +58,7 @@ public class MyAIController extends CarController{
 				finishPoint = coordinate;
 			}
 		}
-		System.out.println(weightMap);
+//		System.out.println(weightMap);
 	}
 	
 	private void eastTurn() {
@@ -164,10 +165,12 @@ public class MyAIController extends CarController{
 			getAllKeys = true;
 			for(Coordinate coordinate : wholeMap.keySet()) {
 				if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
+					// why ?? put the max weight
 					weightMap.put(coordinate,Integer.MAX_VALUE);
 				}
 			}
 		}
+		
 		if (weightMap.get(new Coordinate(getPosition())) > 1000) {
 			weightMap.put(new Coordinate(getPosition()), 30);
 		}
@@ -207,7 +210,7 @@ public class MyAIController extends CarController{
 					weightMap.put(coordinate, Integer.MIN_VALUE);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (MudTrap)tile);
-					System.out.println("mud   " + coordinate);
+//					System.out.println("mud   " + coordinate);
 				}else if(((TrapTile) tile).getTrap().equals("health") && !travelMap.get(coordinate)){//current health to be added
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
@@ -222,90 +225,93 @@ public class MyAIController extends CarController{
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
-			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
+//			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
 		}
 		Collections.sort(arrayList, Collections.reverseOrder());
 //		System.out.println(arrayList);
 		int i = 0;
 		for(Coordinate coordinate : currentView.keySet()) {
-			if(weightMap.get(coordinate) == arrayList.get(i)) {
-//				System.out.println(coordinate);
-				//find a route
-				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
-				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
+//			if(weightMap.get(coordinate) == arrayList.get(i)) {
+////				System.out.println(coordinate);
+//				//find a route
+//				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
+				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder 
+				= new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
 				List<Coordinate> coordinates;
-				if (getAllKeys) {
-					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), finishPoint, wholeMap);
-				}else {
+//				if (getAllKeys) {
+//					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), finishPoint, wholeMap);
+//				}else {
 					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
-				}
-				System.out.println(getPosition());
+//				}
+//				System.out.println(getPosition());
 				
-				Direction orientation = getOrientation();
-				if (coordinates.size() <= 1) {
-					i++;
-					continue;
-				}
+//				Direction orientation = getOrientation();
+//				if (coordinates.size() <= 1) {
+//					i++;
+//					continue;
+//				}
+				System.out.println("WantToFinishAt:    "+ coordinate);
 				System.out.println(coordinates);
-				nextCoordinate = coordinates.get(1);
+				System.out.println("=======");
+//				nextCoordinate = coordinates.get(1);
 				// the weight of destination - 1
-				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
-				
-				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
-				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
-				if(x == 1 && y == 0) {
-					direction = Direction.EAST;
-				}else if(x == -1 && y == 0) {
-					direction = Direction.WEST;
-				}else if(x == 0 && y == 1) {
-					direction = Direction.NORTH;
-				}else if(x == 0 && y == -1) {
-					direction = Direction.SOUTH;
-				}
-				if(!coordinates.isEmpty()) {
-					switch (orientation) {
-					case EAST:
-						eastTurn();
-						break;
-					case WEST:
-						westTurn();
-						break;
-					case NORTH:
-						northTurn();
-						break;
-					case SOUTH:
-						southTurn();
-						break;
-					}
-				}
-				
-				break;
+//				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
+//				
+//				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
+//				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
+//				if(x == 1 && y == 0) {
+//					direction = Direction.EAST;
+//				}else if(x == -1 && y == 0) {
+//					direction = Direction.WEST;
+//				}else if(x == 0 && y == 1) {
+//					direction = Direction.NORTH;
+//				}else if(x == 0 && y == -1) {
+//					direction = Direction.SOUTH;
+//				}
+//				if(!coordinates.isEmpty()) {
+//					switch (orientation) {
+//					case EAST:
+//						eastTurn();
+//						break;
+//					case WEST:
+//						westTurn();
+//						break;
+//					case NORTH:
+//						northTurn();
+//						break;
+//					case SOUTH:
+//						southTurn();
+//						break;
+//					}
+//				}
+//				
+//				break;
 			}
 			
 		}
 		//System.out.println(weightMap);
-		Set<Integer> keys = Simulation.getKeys();
-		Simulation.resetKeys();
-		for (int k : keys){
-		     switch (k){
-		        case Input.Keys.B:
-		        	applyBrake();
-		            break;
-		        case Input.Keys.UP:
-		        	applyForwardAcceleration();
-		            break;
-		        case Input.Keys.DOWN:
-		        	applyReverseAcceleration();
-		        	break;
-		        case Input.Keys.LEFT:
-		        	turnLeft();
-		        	break;
-		        case Input.Keys.RIGHT:
-		        	turnRight();
-		        	break;
-		        default:
-		      }
-		  }
+//		Set<Integer> keys = Simulation.getKeys();
+//		Simulation.resetKeys();
+//		for (int k : keys){
+//		     switch (k){
+//		        case Input.Keys.B:
+//		        	applyBrake();
+//		            break;
+//		        case Input.Keys.UP:
+//		        	applyForwardAcceleration();
+//		            break;
+//		        case Input.Keys.DOWN:
+//		        	applyReverseAcceleration();
+//		        	break;
+//		        case Input.Keys.LEFT:
+//		        	turnLeft();
+//		        	break;
+//		        case Input.Keys.RIGHT:
+//		        	turnRight();
+//		        	break;
+//		        default:
+//		      }
+//		  }
 	}
 
-}
+
