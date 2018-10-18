@@ -1,31 +1,27 @@
-package mycontroller.DijkstraMinimalPath;
+package mycontroller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
-import tiles.GrassTrap;
-import tiles.LavaTrap;
+import mycontroller.DijkstraMinimalPath.Node;
 import tiles.MapTile;
-import tiles.MudTrap;
 import tiles.TrapTile;
 import utilities.Coordinate;
 
-public class DijkstraPathFinder implements IPathFinder {
+public class DijkstraRouteSelection implements IRouteSelection {
 
 	HashMap<Coordinate, Node> expanded;
 	PriorityQueue<Node> frontier;
 	
-	public DijkstraPathFinder() {
+	public DijkstraRouteSelection() {
 		expanded = new HashMap<>();
 		frontier = new PriorityQueue<>();
 	}
 
 	@Override
-	public List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
+	public List<Coordinate> routeSelect(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
 		expanded.clear();
 		frontier.clear();
 		// new Node( Node Parent, coordinate)
@@ -112,5 +108,4 @@ public class DijkstraPathFinder implements IPathFinder {
 			else node.setCost(1+node.parent.cost);
 		}
 	}
-
 }

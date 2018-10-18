@@ -33,10 +33,12 @@ public class MyAIController extends CarController{
 	private Boolean healthFlag = false;
 	private Boolean getAllKeys = false;
 	private Coordinate finishPoint;
+	private ArrayList<Coordinate> healthTraps;
+
 	
-	public MyAIController(Car car) {
-		super(car);
+	private void initializeMap() {
 		wholeMap = getMap();
+		healthTraps = new ArrayList<>();
 		weightMap = new HashMap<Coordinate,Integer>();
 		travelMap = new HashMap<Coordinate,Boolean>();
 		for(Coordinate coordinate : wholeMap.keySet()) {
@@ -57,7 +59,32 @@ public class MyAIController extends CarController{
 				finishPoint = coordinate;
 			}
 		}
-		System.out.println(weightMap);
+	}
+	
+
+	private Coordinate getClosestHealthTraps(ArrayList<Coordinate> healthTraps) {
+		if (healthTraps.size() == 1) {
+			return healthTraps.get(0);
+		}else if(healthTraps.size() > 0) {
+			Coordinate cloestPoint = healthTraps.get(0);
+			int min = Integer.MAX_VALUE;
+			Coordinate current = new Coordinate(getPosition());
+			for (Coordinate coordinate:healthTraps) {
+				int deltaX = current.x - coordinate.x;
+				int deltaY = current.y - coordinate.y;
+				int distance = deltaX * deltaX + deltaY * deltaY;
+				if (min > distance) {
+					cloestPoint = coordinate;
+				}
+			}
+			return cloestPoint;
+		}
+		return null;
+	}
+	
+	public MyAIController(Car car) {
+		super(car);
+		initializeMap();
 	}
 	
 	private void eastTurn() {
@@ -191,28 +218,30 @@ public class MyAIController extends CarController{
 			MapTile tile =  currentView.get(coordinate);
 			if(tile.isType(MapTile.Type.EMPTY)) {
 				weightMap.put(coordinate, Integer.MIN_VALUE);
-			}else if(tile.isType(MapTile.Type.TRAP)) {
-				//System.out.println(((TrapTile) tile).getTrap()+"    "+coordinate);
+			}else if(tile.isType(MapTile.Type.TRAP) && !travelMap.get(coordinate)) {
 				if(((TrapTile) tile).getTrap().equals("lava")){
-					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
+					if(((LavaTrap) tile).getKey() != 0) {
 						weightMap.put(coordinate, 10000);
 						travelMap.put(coordinate, true);
 						wholeMap.put(coordinate, (LavaTrap)tile);
-					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
+					}else if(((LavaTrap) tile).getKey() == 0) {
 						weightMap.put(coordinate, 50);
 						travelMap.put(coordinate, true);
 						wholeMap.put(coordinate, (LavaTrap)tile);
 					}
-				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
+					if (getKeys().contains(((LavaTrap) tile).getKey())) {
+						weightMap.put(coordinate, 50);
+					}
+				}else if(((TrapTile) tile).getTrap().equals("mud")){
 					weightMap.put(coordinate, Integer.MIN_VALUE);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (MudTrap)tile);
-					System.out.println("mud   " + coordinate);
-				}else if(((TrapTile) tile).getTrap().equals("health") && !travelMap.get(coordinate)){//current health to be added
+				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (HealthTrap)tile);
-				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
+					healthTraps.add(coordinate);
+				}else if(((TrapTile) tile).getTrap().equals("grass")){
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (GrassTrap)tile);
@@ -222,31 +251,28 @@ public class MyAIController extends CarController{
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
-			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
 		}
 		Collections.sort(arrayList, Collections.reverseOrder());
 //		System.out.println(arrayList);
 		int i = 0;
 		for(Coordinate coordinate : currentView.keySet()) {
 			if(weightMap.get(coordinate) == arrayList.get(i)) {
-//				System.out.println(coordinate);
 				//find a route
 				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
-				mycontroller.DijkstraMinimalPath.DijkstraPathFinder dijkstraPathFinder = new mycontroller.DijkstraMinimalPath.DijkstraPathFinder();
+				DijkstraRouteSelection dijkstraRouteSelection = new DijkstraRouteSelection();
 				List<Coordinate> coordinates;
 				if (getAllKeys) {
-					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), finishPoint, wholeMap);
-				}else {
-					coordinates = dijkstraPathFinder.planRoute(new Coordinate(getPosition()), coordinate, wholeMap);
+					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), finishPoint, wholeMap);
+				}else if (healthFlag & healthTraps.size() > 0) { 
+					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), getClosestHealthTraps(healthTraps), wholeMap);
+				}else{
+					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), coordinate, wholeMap);
 				}
-				System.out.println(getPosition());
-				
 				Direction orientation = getOrientation();
 				if (coordinates.size() <= 1) {
 					i++;
 					continue;
 				}
-				System.out.println(coordinates);
 				nextCoordinate = coordinates.get(1);
 				// the weight of destination - 1
 				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
@@ -283,29 +309,6 @@ public class MyAIController extends CarController{
 			}
 			
 		}
-		//System.out.println(weightMap);
-		Set<Integer> keys = Simulation.getKeys();
-		Simulation.resetKeys();
-		for (int k : keys){
-		     switch (k){
-		        case Input.Keys.B:
-		        	applyBrake();
-		            break;
-		        case Input.Keys.UP:
-		        	applyForwardAcceleration();
-		            break;
-		        case Input.Keys.DOWN:
-		        	applyReverseAcceleration();
-		        	break;
-		        case Input.Keys.LEFT:
-		        	turnLeft();
-		        	break;
-		        case Input.Keys.RIGHT:
-		        	turnRight();
-		        	break;
-		        default:
-		      }
-		  }
 	}
 
 }

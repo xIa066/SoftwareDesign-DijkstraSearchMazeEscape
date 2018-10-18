@@ -42,7 +42,7 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public int compareTo(Node o) {
-		return Double.compare(this.cost, o.cost);
+		return Integer.compare(this.cost, o.cost);
 	}
 
 }
