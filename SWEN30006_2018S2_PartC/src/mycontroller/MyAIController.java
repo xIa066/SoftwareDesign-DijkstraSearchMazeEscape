@@ -29,21 +29,19 @@ public class MyAIController extends CarController{
 	private HashMap<Coordinate, MapTile> wholeMap;
 	private HashMap<Coordinate, Integer> weightMap;
 	private HashMap<Coordinate, Boolean> travelMap;
-	private Direction direction;
 	private Boolean healthFlag = false;
 	private Boolean getAllKeys = false;
 	private Coordinate finishPoint;
-	private ArrayList<Coordinate> healthTraps;
-
 	
-	private void initializeMap() {
+	public MyAIController(Car car) {
+		super(car);
 		wholeMap = getMap();
-		healthTraps = new ArrayList<>();
 		weightMap = new HashMap<Coordinate,Integer>();
 		travelMap = new HashMap<Coordinate,Boolean>();
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			travelMap.put(coordinate, false);
 		}
+		// Initialize the whole map
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			if(wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
 				weightMap.put(coordinate, 100);
@@ -59,35 +57,10 @@ public class MyAIController extends CarController{
 				finishPoint = coordinate;
 			}
 		}
+//		System.out.println(weightMap);
 	}
 	
-
-	private Coordinate getClosestHealthTraps(ArrayList<Coordinate> healthTraps) {
-		if (healthTraps.size() == 1) {
-			return healthTraps.get(0);
-		}else if(healthTraps.size() > 0) {
-			Coordinate cloestPoint = healthTraps.get(0);
-			int min = Integer.MAX_VALUE;
-			Coordinate current = new Coordinate(getPosition());
-			for (Coordinate coordinate:healthTraps) {
-				int deltaX = current.x - coordinate.x;
-				int deltaY = current.y - coordinate.y;
-				int distance = deltaX * deltaX + deltaY * deltaY;
-				if (min > distance) {
-					cloestPoint = coordinate;
-				}
-			}
-			return cloestPoint;
-		}
-		return null;
-	}
-	
-	public MyAIController(Car car) {
-		super(car);
-		initializeMap();
-	}
-	
-	private void eastTurn() {
+	private void eastTurn(Direction direction) {
 		switch (direction) {
 		case EAST:
 			applyForwardAcceleration();
@@ -111,7 +84,7 @@ public class MyAIController extends CarController{
 			break;
 		}
 	}
-	private void westTurn() {
+	private void westTurn(Direction direction) {
 		switch (direction) {
 		case WEST:
 			applyForwardAcceleration();
@@ -135,7 +108,7 @@ public class MyAIController extends CarController{
 			break;
 		}
 	}
-	private void northTurn() {
+	private void northTurn(Direction direction) {
 		switch (direction) {
 		case NORTH:
 			applyForwardAcceleration();
@@ -159,7 +132,7 @@ public class MyAIController extends CarController{
 			break;
 		}
 	}
-	private void southTurn() {
+	private void southTurn(Direction direction) {
 		switch (direction) {
 		case SOUTH:
 			applyForwardAcceleration();
@@ -191,10 +164,12 @@ public class MyAIController extends CarController{
 			getAllKeys = true;
 			for(Coordinate coordinate : wholeMap.keySet()) {
 				if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
+					// why ?? put the max weight
 					weightMap.put(coordinate,Integer.MAX_VALUE);
 				}
 			}
 		}
+		
 		if (weightMap.get(new Coordinate(getPosition())) > 1000) {
 			weightMap.put(new Coordinate(getPosition()), 30);
 		}
@@ -213,35 +188,32 @@ public class MyAIController extends CarController{
 				return;
 			}
 		}
-		
 		for(Coordinate coordinate : currentView.keySet()) {
 			MapTile tile =  currentView.get(coordinate);
 			if(tile.isType(MapTile.Type.EMPTY)) {
 				weightMap.put(coordinate, Integer.MIN_VALUE);
-			}else if(tile.isType(MapTile.Type.TRAP) && !travelMap.get(coordinate)) {
+			}else if(tile.isType(MapTile.Type.TRAP)) {
+				//System.out.println(((TrapTile) tile).getTrap()+"    "+coordinate);
 				if(((TrapTile) tile).getTrap().equals("lava")){
-					if(((LavaTrap) tile).getKey() != 0) {
+					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 10000);
 						travelMap.put(coordinate, true);
 						wholeMap.put(coordinate, (LavaTrap)tile);
-					}else if(((LavaTrap) tile).getKey() == 0) {
+					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
 						weightMap.put(coordinate, 50);
 						travelMap.put(coordinate, true);
 						wholeMap.put(coordinate, (LavaTrap)tile);
 					}
-					if (getKeys().contains(((LavaTrap) tile).getKey())) {
-						weightMap.put(coordinate, 50);
-					}
-				}else if(((TrapTile) tile).getTrap().equals("mud")){
+				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
 					weightMap.put(coordinate, Integer.MIN_VALUE);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (MudTrap)tile);
-				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
+//					System.out.println("mud   " + coordinate);
+				}else if(((TrapTile) tile).getTrap().equals("health") && !travelMap.get(coordinate)){//current health to be added
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (HealthTrap)tile);
-					healthTraps.add(coordinate);
-				}else if(((TrapTile) tile).getTrap().equals("grass")){
+				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
 					weightMap.put(coordinate, 100);
 					travelMap.put(coordinate, true);
 					wholeMap.put(coordinate, (GrassTrap)tile);
@@ -251,34 +223,37 @@ public class MyAIController extends CarController{
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
+//			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
 		}
 		Collections.sort(arrayList, Collections.reverseOrder());
 //		System.out.println(arrayList);
 		int i = 0;
 		for(Coordinate coordinate : currentView.keySet()) {
 			if(weightMap.get(coordinate) == arrayList.get(i)) {
-				//find a route
-				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
-				DijkstraRouteSelection dijkstraRouteSelection = new DijkstraRouteSelection();
+//				//find a route
+//				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
+				DijkstraRouteSelector dijkstraRouteSelector 
+				= new DijkstraRouteSelector();
 				List<Coordinate> coordinates;
 				if (getAllKeys) {
-					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), finishPoint, wholeMap);
-				}else if (healthFlag & healthTraps.size() > 0) { 
-					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), getClosestHealthTraps(healthTraps), wholeMap);
-				}else{
-					coordinates = dijkstraRouteSelection.routeSelect(new Coordinate(getPosition()), coordinate, wholeMap);
+					coordinates = dijkstraRouteSelector.routeSelect(new Coordinate(getPosition()), finishPoint, wholeMap);
+				}else {
+					coordinates = dijkstraRouteSelector.routeSelect(new Coordinate(getPosition()), coordinate, wholeMap);
 				}
+//				System.out.println(getPosition());
+				
 				Direction orientation = getOrientation();
 				if (coordinates.size() <= 1) {
 					i++;
 					continue;
 				}
 				nextCoordinate = coordinates.get(1);
-				// the weight of destination - 1
+//				 the weight of destination - 1
 				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
 				
 				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
 				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
+				Direction direction = Direction.EAST;
 				if(x == 1 && y == 0) {
 					direction = Direction.EAST;
 				}else if(x == -1 && y == 0) {
@@ -291,16 +266,16 @@ public class MyAIController extends CarController{
 				if(!coordinates.isEmpty()) {
 					switch (orientation) {
 					case EAST:
-						eastTurn();
+						eastTurn(direction);
 						break;
 					case WEST:
-						westTurn();
+						westTurn(direction);
 						break;
 					case NORTH:
-						northTurn();
+						northTurn(direction);
 						break;
 					case SOUTH:
-						southTurn();
+						southTurn(direction);
 						break;
 					}
 				}
@@ -310,5 +285,6 @@ public class MyAIController extends CarController{
 			
 		}
 	}
-
 }
+
+

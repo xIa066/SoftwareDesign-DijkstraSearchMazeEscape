@@ -6,7 +6,7 @@ import java.util.List;
 import tiles.MapTile;
 import utilities.Coordinate;
 
-public interface IRouteSelection {
+public interface IRouteSelector {
 
 	List<Coordinate> routeSelect(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map);
 

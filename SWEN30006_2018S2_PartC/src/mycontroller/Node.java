@@ -1,4 +1,4 @@
-package mycontroller.DijkstraMinimalPath;
+package mycontroller;
 
 import java.util.ArrayList;
 import world.Car;
