@@ -10,4 +10,7 @@ public interface IPathFinder {
 
 	List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map);
 
+	List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map,
+			HashMap<Coordinate, Integer> weightMap);
+
 }

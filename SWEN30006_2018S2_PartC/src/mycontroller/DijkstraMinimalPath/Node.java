@@ -5,6 +5,7 @@ import world.Car;
 import java.util.List;
 import utilities.Coordinate;
 import world.World;
+import world.WorldSpatial.Direction;
 import controller.CarController;
 
 public class Node implements Comparable<Node> {
@@ -21,7 +22,6 @@ public class Node implements Comparable<Node> {
 	
 	// Children , four adjacent directions, except it is outside of the map
 	public List<Node> getChildren() {
-		
 		List<Node >children = new ArrayList<>();
 		for (int i=-1; i<2; i=i+2) {
 			if (coordinate.x+i < World.MAP_WIDTH && coordinate.x+i >=0) {

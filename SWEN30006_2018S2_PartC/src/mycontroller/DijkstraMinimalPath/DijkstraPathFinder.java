@@ -28,7 +28,7 @@ public class DijkstraPathFinder implements IPathFinder {
 	}
 
 	@Override
-	public List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
+	public List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map, HashMap<Coordinate, Integer> weightMap) {
 		expanded.clear();
 		frontier.clear();
 		i=0;
@@ -70,7 +70,7 @@ public class DijkstraPathFinder implements IPathFinder {
 				setNodeCost(child, map);
 //				System.out.println(child.coordinate);
 //				System.out.println(child.cost);
-//				if (child.cost < Integer.MAX_VALUE) {
+				//if (child.cost < Integer.MAX_VALUE) {
 					if (!expanded.containsKey(child.coordinate)) {
 						expanded.put(child.coordinate, child);
 						frontier.add(child);
@@ -83,13 +83,19 @@ public class DijkstraPathFinder implements IPathFinder {
 							expanded.put(child.coordinate, child);
 						}
 					}
-				}
+				}//}
 			);
 //			System.out.println("===========");
 		}
 //		System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-		System.out.println("*Actual finish: " + current.coordinate);
-		System.out.println("*Actual cost" + current.cost);
+//		System.out.println("*Actual finish: " + current.coordinate);
+//		System.out.println("*Actual cost" + current.cost);
+		boolean flag = false;
+		if(Math.abs(current.cost) > 10000) {
+			flag = true;
+			// things might be wrong here
+			weightMap.put(current.coordinate,weightMap.get(current.coordinate)-1);
+		}
 		
 		List<Coordinate> path = new ArrayList<>();
 		while (current != null) {
@@ -101,14 +107,15 @@ public class DijkstraPathFinder implements IPathFinder {
 		if (path.size() == 1) {
 			path.clear();
 		}
-		System.out.println("$ i value is " + i);
+		if(flag) {
+			
+			path = null;
+			flag = false;
+		}
+//		System.out.println("$ i value is " + i);
 		return path;
 	}
 	
-	private boolean finishUnreachable() {
-		
-		return false;
-	}
 
 	public void setNodeCost(Node node, HashMap<Coordinate, MapTile> map) {
 		MapTile tile = map.get(node.coordinate);
@@ -161,6 +168,12 @@ public class DijkstraPathFinder implements IPathFinder {
 			}
 			else node.setCost(1+node.parent.cost);
 		}
+	}
+
+	@Override
+	public List<Coordinate> planRoute(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
