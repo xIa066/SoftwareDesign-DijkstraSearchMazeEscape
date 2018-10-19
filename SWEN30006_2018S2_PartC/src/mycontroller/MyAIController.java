@@ -33,8 +33,17 @@ public class MyAIController extends CarController{
 	private Boolean getAllKeys = false;
 	private Coordinate finishPoint;
 	
+	private Car car;
+	private MoveCar movement;
+	
 	public MyAIController(Car car) {
 		super(car);
+		this.car = car;
+		initializeMap();
+	}
+	
+	private void initializeMap() {
+		movement = new MoveCar(this.car);
 		wholeMap = getMap();
 		weightMap = new HashMap<Coordinate,Integer>();
 		travelMap = new HashMap<Coordinate,Boolean>();
@@ -57,7 +66,6 @@ public class MyAIController extends CarController{
 				finishPoint = coordinate;
 			}
 		}
-//		System.out.println(weightMap);
 	}
 	
 	private void eastTurn(Direction direction) {
@@ -188,38 +196,7 @@ public class MyAIController extends CarController{
 				return;
 			}
 		}
-		for(Coordinate coordinate : currentView.keySet()) {
-			MapTile tile =  currentView.get(coordinate);
-			if(tile.isType(MapTile.Type.EMPTY)) {
-				weightMap.put(coordinate, Integer.MIN_VALUE);
-			}else if(tile.isType(MapTile.Type.TRAP)) {
-				//System.out.println(((TrapTile) tile).getTrap()+"    "+coordinate);
-				if(((TrapTile) tile).getTrap().equals("lava")){
-					if(((LavaTrap) tile).getKey() != 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
-						weightMap.put(coordinate, 10000);
-						travelMap.put(coordinate, true);
-						wholeMap.put(coordinate, (LavaTrap)tile);
-					}else if(((LavaTrap) tile).getKey() == 0 && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)) {
-						weightMap.put(coordinate, 50);
-						travelMap.put(coordinate, true);
-						wholeMap.put(coordinate, (LavaTrap)tile);
-					}
-				}else if(((TrapTile) tile).getTrap().equals("mud") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
-					weightMap.put(coordinate, Integer.MIN_VALUE);
-					travelMap.put(coordinate, true);
-					wholeMap.put(coordinate, (MudTrap)tile);
-//					System.out.println("mud   " + coordinate);
-				}else if(((TrapTile) tile).getTrap().equals("health") && !travelMap.get(coordinate)){//current health to be added
-					weightMap.put(coordinate, 100);
-					travelMap.put(coordinate, true);
-					wholeMap.put(coordinate, (HealthTrap)tile);
-				}else if(((TrapTile) tile).getTrap().equals("grass") && wholeMap.get(coordinate).isType(MapTile.Type.ROAD) && !travelMap.get(coordinate)){
-					weightMap.put(coordinate, 100);
-					travelMap.put(coordinate, true);
-					wholeMap.put(coordinate, (GrassTrap)tile);
-				}
-			}
-		}
+		new ExploreMap(currentView, wholeMap, weightMap, travelMap);
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
 			arrayList.add(weightMap.get(coordinate));
@@ -279,6 +256,9 @@ public class MyAIController extends CarController{
 						break;
 					}
 				}
+				
+				//movement.carMove(direction);
+				//weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 				
 				break;
 			}
