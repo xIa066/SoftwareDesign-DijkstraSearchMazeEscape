@@ -302,8 +302,10 @@ public class MyAIController extends CarController{
 				
 				System.out.println("WANTTOTURN :  " + direction);
 				System.out.println("FACETO: " + orientation);
-				System.out.println("The speed is:  " + getSpeed());
+				System.out.println("Current speed is:  " + getSpeed());
+				System.out.println("Current health is"+getHealth());
 				if(!coordinates.isEmpty()) {
+// this should be commented
 					if (wholeMap.get(nextCoordinate).isType(MapTile.Type.WALL)) {
 						System.out.println("fuck virgin");
 						applyBrake();
@@ -329,6 +331,8 @@ public class MyAIController extends CarController{
 						}
 					}
 				}
+				System.out.println("speed after move "+ getSpeed());
+				System.out.println("health after move"+getHealth());
 				System.out.println("#########");
 				break;
 			}
