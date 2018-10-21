@@ -1,3 +1,8 @@
+/* 
+ * Group 20
+ * This class is for car moving
+ */
+
 package mycontroller;
 
 import world.Car;

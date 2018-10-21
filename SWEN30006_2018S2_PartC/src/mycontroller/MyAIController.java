@@ -1,3 +1,7 @@
+/*
+ * Group 20
+ */
+
 package mycontroller;
 
 import java.util.ArrayList;
@@ -25,6 +29,10 @@ import world.WorldSpatial.Direction;
 public class MyAIController extends CarController{
 
 	private static final float CAR_MAX_SPEED = 1;
+	private static final int FULLHEALTH = 100;
+	private static final int WEIGHT_ROAD = 100;
+	private static final int ROAD_HAVE_BEEN = 20;
+	
 	Coordinate nextCoordinate;
 	private HashMap<Coordinate, MapTile> wholeMap;
 	private HashMap<Coordinate, Integer> weightMap;
@@ -32,18 +40,14 @@ public class MyAIController extends CarController{
 	private Boolean healthFlag = false;
 	private Boolean getAllKeys = false;
 	private Coordinate finishPoint;
-	
-	private Car car;
-	private MoveCar movement;
+
 	
 	public MyAIController(Car car) {
 		super(car);
-		this.car = car;
 		initializeMap();
 	}
 	
 	private void initializeMap() {
-		movement = new MoveCar(this.car);
 		wholeMap = getMap();
 		weightMap = new HashMap<Coordinate,Integer>();
 		travelMap = new HashMap<Coordinate,Boolean>();
@@ -53,113 +57,104 @@ public class MyAIController extends CarController{
 		// Initialize the whole map
 		for(Coordinate coordinate : wholeMap.keySet()) {
 			if(wholeMap.get(coordinate).isType(MapTile.Type.ROAD)) {
-				weightMap.put(coordinate, 100);
+				weightMap.put(coordinate, WEIGHT_ROAD);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.START)) {
-				weightMap.put(coordinate, 100);
+				weightMap.put(coordinate, WEIGHT_ROAD);
 				travelMap.put(coordinate, true);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.WALL)) {
 				weightMap.put(coordinate, Integer.MIN_VALUE);
 				travelMap.put(coordinate, true);
 			}else if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
-				weightMap.put(coordinate,Integer.MIN_VALUE);//need to be modified
+				weightMap.put(coordinate,Integer.MIN_VALUE);
 				travelMap.put(coordinate, true);
 				finishPoint = coordinate;
 			}
 		}
 	}
 	
+	// the movement of the car when the orientation is east
 	private void eastTurn(Direction direction) {
 		switch (direction) {
 		case EAST:
 			applyForwardAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case WEST:
 			applyReverseAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case NORTH:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnLeft();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		case SOUTH:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnRight();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		}
 	}
+	
+	// the movement of the car when the orientation is west
 	private void westTurn(Direction direction) {
 		switch (direction) {
 		case WEST:
 			applyForwardAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case EAST:
 			applyReverseAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case SOUTH:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnLeft();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		case NORTH:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnRight();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		}
 	}
+	
+	// the movement of the car when the orientation is north
 	private void northTurn(Direction direction) {
 		switch (direction) {
 		case NORTH:
 			applyForwardAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case SOUTH:
 			applyReverseAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case WEST:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnLeft();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		case EAST:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnRight();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		}
 	}
+	
+	// the movement of the car when the orientation is south
 	private void southTurn(Direction direction) {
 		switch (direction) {
 		case SOUTH:
 			applyForwardAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case NORTH:
 			applyReverseAcceleration();
-			weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			break;
 		case EAST:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnLeft();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		case WEST:
 			if (getSpeed() == CAR_MAX_SPEED) {
 				turnRight();
-				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
 			}
 			break;
 		}
@@ -168,66 +163,71 @@ public class MyAIController extends CarController{
 	@Override
 	public void update() {
 		// TODO Auto-generated method stub
+		HashMap<Coordinate, MapTile> currentView = getView();
+		
+		// when the car gets all keys, update the value of the finish
 		if(getKeys().size() == numKeys()) {
 			getAllKeys = true;
 			for(Coordinate coordinate : wholeMap.keySet()) {
 				if(wholeMap.get(coordinate).isType(MapTile.Type.FINISH)) {
-					// why ?? put the max weight
 					weightMap.put(coordinate,Integer.MAX_VALUE);
 				}
 			}
 		}
 		
-		if (weightMap.get(new Coordinate(getPosition())) > 1000) {
-			weightMap.put(new Coordinate(getPosition()), 30);
+		// when the car get a key, change this key trap to a lava trap
+		if (weightMap.get(new Coordinate(getPosition())) > WEIGHT_ROAD) {
+			weightMap.put(new Coordinate(getPosition()), ExploreMap.LAVA_WEIGHT);
 		}
 		
-		HashMap<Coordinate, MapTile> currentView = getView();
-		
-		if (getHealth() <= 50) {
+		// when the car has less than 50% health and it stand at a health trap
+		// it will move until it gets full health
+		if (getHealth() <= FULLHEALTH/2) {
 			healthFlag = true;
-		}else if (getHealth() == 100 && healthFlag) {
+		}else if (getHealth() == FULLHEALTH && healthFlag) {
 			healthFlag = false;
 		}
-		
 		if (currentView.get(new Coordinate(getPosition())) instanceof HealthTrap) {
 			if (healthFlag) {
 				applyBrake();
 				return;
 			}
 		}
-		new ExploreMap(currentView, wholeMap, weightMap, travelMap);
-		ArrayList<Integer> arrayList = new ArrayList<>();
+		
+		// update the map by current view
+		ExploreMap explorer = new ExploreMap(currentView, wholeMap, weightMap, travelMap);
+		explorer.exploring();
+		
+		// get the list of weight in descending order
+		ArrayList<Integer> weightList = new ArrayList<>();
 		for(Coordinate coordinate : currentView.keySet()) {
-			arrayList.add(weightMap.get(coordinate));
-//			System.out.println(weightMap.get(coordinate)+"    "+coordinate+"\n");
+			weightList.add(weightMap.get(coordinate));
 		}
-		Collections.sort(arrayList, Collections.reverseOrder());
-//		System.out.println(arrayList);
-		int i = 0;
+		Collections.sort(weightList, Collections.reverseOrder());
+		
+		int nthBiggestWeight = 0;
 		for(Coordinate coordinate : currentView.keySet()) {
-			if(weightMap.get(coordinate) == arrayList.get(i)) {
-//				//find a route
-//				//routeSelection(getPosition(), coordinate, wholeMap); -> -1   (x,y)
-				DijkstraRouteSelector dijkstraRouteSelector 
-				= new DijkstraRouteSelector();
+			if(weightMap.get(coordinate) == weightList.get(nthBiggestWeight)) {
+				
+				DijkstraRouteSelector dijkstraRouteSelector = new DijkstraRouteSelector();
 				List<Coordinate> coordinates;
 				if (getAllKeys) {
+					// if the car gets all keys, it will go to finish straight away
 					coordinates = dijkstraRouteSelector.routeSelect(new Coordinate(getPosition()), finishPoint, wholeMap);
 				}else {
 					coordinates = dijkstraRouteSelector.routeSelect(new Coordinate(getPosition()), coordinate, wholeMap);
 				}
-//				System.out.println(getPosition());
 				
-				Direction orientation = getOrientation();
+				// if this destination can't be move to, check the next point of biggest weight
 				if (coordinates.size() <= 1) {
-					i++;
+					nthBiggestWeight++;
 					continue;
 				}
+				
 				nextCoordinate = coordinates.get(1);
-//				 the weight of destination - 1
 				weightMap.put(coordinates.get(coordinates.size()-1),weightMap.get(coordinates.get(coordinates.size()-1))-1);
 				
+				// get the direction from this point to next point
 				int x = nextCoordinate.x-new Coordinate(getPosition()).x;
 				int y = nextCoordinate.y-new Coordinate(getPosition()).y;
 				Direction direction = Direction.EAST;
@@ -240,8 +240,10 @@ public class MyAIController extends CarController{
 				}else if(x == 0 && y == -1) {
 					direction = Direction.SOUTH;
 				}
+				
+				// Move car
 				if(!coordinates.isEmpty()) {
-					switch (orientation) {
+					switch (getOrientation()) {
 					case EAST:
 						eastTurn(direction);
 						break;
@@ -257,8 +259,8 @@ public class MyAIController extends CarController{
 					}
 				}
 				
-				//movement.carMove(direction);
-				//weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-20);
+				// reduce the weight of next coordinate
+				weightMap.put(nextCoordinate, weightMap.get(nextCoordinate)-ROAD_HAVE_BEEN);
 				
 				break;
 			}
