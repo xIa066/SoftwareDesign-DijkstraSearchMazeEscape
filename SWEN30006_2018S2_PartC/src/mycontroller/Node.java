@@ -5,11 +5,9 @@
 package mycontroller;
 
 import java.util.ArrayList;
-import world.Car;
 import java.util.List;
 import utilities.Coordinate;
 import world.World;
-import controller.CarController;
 
 public class Node implements Comparable<Node> {
 

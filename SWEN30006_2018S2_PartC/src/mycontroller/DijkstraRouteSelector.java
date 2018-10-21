@@ -26,30 +26,28 @@ public class DijkstraRouteSelector implements IRouteSelector {
 	
 	HashMap<Coordinate, Node> expanded;
 	PriorityQueue<Node> frontier;
-	int i;
 	
 	public DijkstraRouteSelector() {
 		expanded = new HashMap<>();
 		frontier = new PriorityQueue<>();
-		i = 0;
 	}
 
 	@Override
 	public List<Coordinate> routeSelect(Coordinate start, Coordinate finish, HashMap<Coordinate, MapTile> map) {
 		expanded.clear();
 		frontier.clear();
-		i=0;
 		Node current = new Node(null, start);
 		current.setCost(0);
 		expanded.put(current.coordinate, current);
 		frontier.add(current);
 		
+		
 		while (!frontier.isEmpty()) {
-			i++;
 			// current is a node
 			current = frontier.remove();
 			current.traversed = true;
 			
+			// if current node is the finish, we actually get the path and break
 			if (finish.equals(current.coordinate) ) {
 				break;
 			}
@@ -74,14 +72,18 @@ public class DijkstraRouteSelector implements IRouteSelector {
 			
 		}
 		
+		// add parent in front of the child
 		List<Coordinate> path = new ArrayList<>();
 		while (current != null) {
 			path.add(0, current.coordinate);
 			current = current.parent;
 		}
+		
+		// if the length of path is 1, then return an empty list
 		if (path.size() == 1) {
 			path.clear();
 		}
+		
 		return path;
 	}
 
@@ -92,17 +94,21 @@ public class DijkstraRouteSelector implements IRouteSelector {
 			node.setCost(Integer.MAX_VALUE);
 		}else {
 			if(tile.isType(MapTile.Type.TRAP)) {
+				
 				if(((TrapTile) tile).getTrap().equals("lava")){
 					node.setCost(LAVA_COST + node.parent.cost);
+					
 				}else if(((TrapTile) tile).getTrap().equals("mud")){
 					node.setCost(Integer.MAX_VALUE);
-				}else if(((TrapTile) tile).getTrap().equals("health")){//current health to be added
+					
+				}else if(((TrapTile) tile).getTrap().equals("health")){
 					node.setCost(NORMAL_COST + node.parent.cost);
+					
 				}else if(((TrapTile) tile).getTrap().equals("grass")){
 					node.setCost(NORMAL_COST + node.parent.cost);
 				}
 			}
-			else node.setCost(1+node.parent.cost);
+			else node.setCost(NORMAL_COST+node.parent.cost);
 		}
 	}
 
