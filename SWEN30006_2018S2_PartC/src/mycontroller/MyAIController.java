@@ -45,6 +45,7 @@ public class MyAIController extends CarController{
 	private Boolean healthFlag = false;
 	private Boolean getAllKeys = false;
 	private Coordinate finishPoint;
+	private IMoveStrategy strategy;
 
 	
 	public MyAIController(Car car) {
@@ -233,16 +234,16 @@ public class MyAIController extends CarController{
 		for(Coordinate coordinate : currentView.keySet()) {
 			if(weightMap.get(coordinate) == weightList.get(nthBiggestWeight)) {
 				
-				List<Coordinate> coordinates;
-				MoveToFinish moveToFinish = new MoveToFinish(finishPoint);
-				MoveByWeight moveByWeight = new MoveByWeight(coordinate);
+				
+				
 				//choose different strategy for moving the car
 				if (getAllKeys) {
 					// if the car gets all keys, it will go to finish straight away
-					coordinates = moveToFinish.move(new Coordinate(getPosition()), wholeMap);
+					strategy = new MoveToFinish(finishPoint);
 				}else {
-					coordinates = moveByWeight.move(new Coordinate(getPosition()), wholeMap);
+					strategy = new MoveByWeight(coordinate);
 				}
+				List<Coordinate> coordinates = strategy.move(new Coordinate(getPosition()), wholeMap);
 				
 				// if this destination can't be move to, check the next point of biggest weight
 				if (coordinates.size() <= 1) {
