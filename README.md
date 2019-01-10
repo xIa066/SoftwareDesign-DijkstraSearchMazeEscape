@@ -77,3 +77,9 @@ confident of their plan, so confident they may even have left duplicates of some
 
 Some traps might be avoidable (i.e. can be by-passed), but others will have to be traversed (e.g. those which
 contain keys) with some consideration as to the resulting damage and to where the car ends up.
+
+# Initialization 
+![alt text](https://raw.githubusercontent.com/xIa066/Dijkstra-implementation-for-maze/master/path/to/img.png)
+
+
+
