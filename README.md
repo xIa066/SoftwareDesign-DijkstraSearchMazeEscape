@@ -1,5 +1,5 @@
 # Dijkstra-implementation-for-maze
-Learn the map and then Escape
+Learn the map and Make decision while Learning until Escape
 
 # The Task
 Your task is to design, implement, integrate and test a car autocontroller that is able to successfully traverse the
