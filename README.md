@@ -79,7 +79,7 @@ Some traps might be avoidable (i.e. can be by-passed), but others will have to b
 contain keys) with some consideration as to the resulting damage and to where the car ends up.
 
 # Initialization 
-![alt text](https://raw.githubusercontent.com/xIa066/Dijkstra-implementation-for-maze/master/path/to/img.png)
+![alt text](https://raw.githubusercontent.com/xIa066/Dijkstra-implementation-for-maze/master/sample_picture(1).jpg)
 
-
-
+# Ending
+![alt text](https://raw.githubusercontent.com/xIa066/Dijkstra-implementation-for-maze/master/sample_picture(2).jpg)
