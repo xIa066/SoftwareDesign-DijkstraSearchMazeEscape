@@ -1,4 +1,4 @@
-# Dijkstra-implementation-for-maze
+# SoftwareDesign - Dijkstra search for escaping a maze
 Learn the map and Make decision while Learning until Escape
 
 # The Task
